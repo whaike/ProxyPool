@@ -1,9 +1,9 @@
 # ProxyPool
-###一个带有打分机制的代理IP池
+一个带有打分机制的代理IP池
 
-##环境：Windows 7、Python2.7、MySQL5.7
+环境：Windows 7、Python2.7、MySQL5.7
 
-#原理：
+原理：
 
 
 	1、使用Python抓取网页上的代理IP，去重检测后将可用的代理IP保存到数据库，并置分数为1，默认失败次数为0。
