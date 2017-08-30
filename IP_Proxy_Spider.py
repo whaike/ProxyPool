@@ -44,7 +44,7 @@ def getHtml(url,num_retrive=3):
     s = res.text if code==200 else None
     return s
 
-# url = 'http://www.66ip.cn/nmtq.php?getnum=800&isp=0&anonymoustype=3&start=&ports=&export=&ipaddress=&area=1&proxytype=2&api=66ip' #国内高级匿名,不限协议,800
+#国内高级匿名,不限协议,800
 #66ip提取器http
 def fetch_66ip():
     url = 'http://www.66ip.cn/nmtq.php?getnum=800&isp=0&anonymoustype=3&start=&ports=&export=&ipaddress=&area=0&proxytype=0&api=66ip'
@@ -564,7 +564,6 @@ def testIp(ip_list):
     while not q.empty():
         usefullIp.append(q.get())
     s =  traceback.extract_stack()
-    # loggs(u'%s : 传递IP %d 个，测试后剩余可用IP个数 %d 个'%(s[-2][2],len(ip_list),len(usefullIp)))
     loggs(u'检测: 传入%d,返回%d'%(len(ip_list),len(usefullIp)))
     return usefullIp
 
@@ -743,10 +742,9 @@ def main():
     saveToMysql(crawl_insert_ip) #插入数据库
     deleteIpFromMysql() #删除分数低的IP
     loggs(u'运行结束')
-
     # printf(useip)
 
-
+#用来做测试的地方
 def test():
     path = '\\'.join(sys.argv[0].split('\\')[:-1])
     print path
