@@ -1,7 +1,7 @@
 # ProxyPool
 一个带有打分机制的代理IP池
 
-环境：Python2.7、MySQL5.7
+环境：Windows 7、Python2.7、MySQL5.7
 
 原理：
 
@@ -13,6 +13,9 @@
 
 
 	3、定时删除数据库中失败次数>=3次的代理
+
+	4、定时运行的方式使用的是Windows的任务计划,每30分钟运行一次，命令如下：
+		schtasks /create /sc minute /mo 30 /tn "代理IP池" /tr "路径Path\IP_Proxy_Spider.py"
 
 
 其他说明：
