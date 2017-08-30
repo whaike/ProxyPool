@@ -30,7 +30,7 @@ def loggs(strs):
 
 #获取一张网页
 def getHtml(url,num_retrive=3):
-    res = requests.get(url,headers=headers)
+    res = requests.get(url,headers=headers,verify=False,timeout=10)
     code = res.status_code
     if 400<=code<500 and num_retrive>0:
         getHtml(url,num_retrive-1) #下载失败重试3次
@@ -382,11 +382,6 @@ def fetch_goubanjia():
 
     return ips
 
-#将json以更优雅的方式显示
-def printf(jd):
-    print json.dumps(jd,sort_keys=True,indent=4,separators=(',',': '),encoding='utf8',ensure_ascii=False)
-
-
 #每日代理IP，ip181
 def fetch_ip181():
     urls = ['http://www.ip181.com/daili/%d.html'%i for i in range(1,11)]
@@ -398,7 +393,6 @@ def fetch_ip181():
             for tr in trs:
                 if tr.xpath(u'contains(string(td[3]),"高匿")'):
                     one = {}
-                    # print tr.xpath('string(td[1])').strip()
                     one['ip'] = tr.xpath('string(td[1])').strip()
                     one['port'] = tr.xpath('string(td[2])').strip()
                     one['protocol'] = 'https' if 'https' in tr.xpath('string(td[4])').strip().lower() else 'http'
@@ -429,7 +423,7 @@ def fetch_httpsdaili():
 
 #风云代理
 def fetch_fengyunip():
-    url = 'http://www.fengyunip.com/free/china-high.html'
+    url = 'http://www.fengyunip.com/free/index.html'
     tree = etree.HTML(getHtml(url))
     trs = tree.xpath('//*[@id="nav_btn01"]/div[5]/table/tbody/tr')
     ips = []
@@ -537,9 +531,10 @@ class ProxyConnectionText(threading.Thread):
         threading.Thread.__init__(self)
         self.url1 = 'http://hotel.qunar.com/'
         self.url2 = 'https://www.baidu.com/'
-        self.ip = ipd.get('ip')+':'+ipd.get('port')
+        
         self.ipd = ipd
         self.protocol = ipd.get('protocol','http').lower()
+        self.ip = self.protocol+'://'+ipd.get('ip')+':'+ipd.get('port')
         self.q = q
 
     def run(self):
@@ -611,6 +606,12 @@ def changeIpScore(iplist,aord):
             continue
         port = ipd.get('port')
         ip_data = 'update proxyippool set score=score%s where ip="%s" and port="%s"'%(score,ip,port)
+        if not aord: #如果减分，则将失败次数+1
+            ip_score_ded = 'update proxyippool set failtimes=failtimes+1 where ip="%s" and port="%s"'%(ip,port)
+            try:
+                cur.execute(ip_score_ded)
+            except Exception,e:
+                loggs('error at(%s) with %s'%(ip_data,str(e)))
         try:
             cur.execute(ip_data)
         except Exception,e:
@@ -621,14 +622,14 @@ def changeIpScore(iplist,aord):
     sco = u'加分' if aord else u'减分'
     loggs("%s: %d"%(sco,len(iplist)))
 
-#删除数据库中分数低于-5的IP
+#删除数据库中失败次数>=3的IP
 def deleteIpFromMysql():
     con = db.connect('localhost','root','123456','spidertools',charset='utf8')
     cur = con.cursor()
-    sql = 'delete from proxyippool where score<=-3'
+    sql = 'delete from proxyippool where failtimes>=3'
     cur.execute(sql)
     p = cur.rowcount
-    loggs(u'低分删除: %d'%int(p))
+    loggs(u'删除: %d'%int(p))
     con.commit()
     cur.close()
     con.close()
@@ -688,6 +689,10 @@ def crawl_ip_not_in_mysql(crawl_ip,mysql_old_ip_dict):
         ips = crawl_ip
     loggs(u'校对: 传入%d,返回%d'%(len(crawl_ip),len(ips)))
     return ips
+
+#将json以更优雅的方式显示
+def printf(jd):
+    print json.dumps(jd,sort_keys=True,indent=4,separators=(',',': '),encoding='utf8',ensure_ascii=False)
 
 #传入一个字符串形式的函数名，返回该函数的调用接口
 def function(f):
